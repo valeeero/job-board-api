@@ -10,14 +10,6 @@ python manage.py migrate --no-input
 # Collect static
 python manage.py collectstatic --no-input --clear
 
-# Create superuser (первый деплой)
-if [[ "$CREATE_SUPERUSER" == "true" ]]; then
-  python manage.py createsuperuser --no-input \
-    --username admin \
-    --email admin@example.com \
-    || true
-fi
-
 # Populate test data
 python manage.py shell -c "
 from jobs.models import Company, Job
