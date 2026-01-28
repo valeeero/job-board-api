@@ -1,7 +1,14 @@
 from rest_framework import viewsets, permissions
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django.shortcuts import render
 from .models import Job
 from .serializers import JobSerializer
+
+
+def job_list(request):
+    jobs = Job.objects.all()
+    return render(request, 'jobs.html', {'jobs': jobs})
+
 
 class JobViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.filter(is_active=True).select_related('company')

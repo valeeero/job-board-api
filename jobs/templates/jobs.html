@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+<h1>🔥 Job Board API</h1>
+<a href="/admin/" class="btn btn-primary mb-3">Admin Panel</a>
+<a href="/api/jobs/" class="btn btn-secondary mb-3">API Docs</a>
+
+<h3>Available Jobs:</h3>
+<div class="row">
+{% for job in jobs %}
+<div class="col-md-6 mb-3">
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">{{ job.title }}</h5>
+    <p class="card-text">{{ job.company.name }}</p>
+    <p>{{ job.description|truncatewords:20 }}</p>
+  </div>
+</div>
+</div>
+{% empty %}
+<div class="alert alert-info">No jobs yet. Add via Admin!</div>
+{% endfor %}
+</div>
+</div>
+{% endblock %}
