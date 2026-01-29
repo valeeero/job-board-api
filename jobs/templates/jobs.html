@@ -1,25 +1,41 @@
-{% extends 'base.html' %}
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="container mt-4">
-<h1>🔥 Job Board API</h1>
-<a href="/admin/" class="btn btn-primary mb-3">Admin Panel</a>
-<a href="/api/jobs/" class="btn btn-secondary mb-3">API Docs</a>
-
-<h3>Available Jobs:</h3>
-<div class="row">
-{% for job in jobs %}
-<div class="col-md-6 mb-3">
-<div class="card">
-  <div class="card-body">
-    <h5 class="card-title">{{ job.title }}</h5>
-    <p class="card-text">{{ job.company.name }}</p>
-    <p>{{ job.description|truncatewords:20 }}</p>
+  <div class="row mb-4">
+    <div class="col">
+      <h1 class="display-4">🔥 Job Board API</h1>
+      <p class="lead">Production ready Django DRF</p>
+    </div>
   </div>
-</div>
-</div>
-{% empty %}
-<div class="alert alert-info">No jobs yet. Add via Admin!</div>
-{% endfor %}
-</div>
+
+  <div class="row mb-4">
+    <div class="col">
+      <a href="/admin/" class="btn btn-success btn-lg me-2"> 🛠️ Admin Panel </a>
+      <a href="/api/jobs/" class="btn btn-info btn-lg me-2"> 📊 API Docs </a>
+      <a href="#" class="btn btn-secondary btn-lg"> ➕ Add Job (soon) </a>
+    </div>
+  </div>
+
+  <h3>📋 Available Jobs:</h3>
+  {% if jobs %}
+  <div class="row">
+    {% for job in jobs %}
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ job.title }}</h5>
+          <h6 class="card-subtitle text-muted">{{ job.company.name }}</h6>
+          <p class="card-text">{{ job.description|truncatewords:15 }}</p>
+          <a href="#" class="btn btn-outline-primary btn-sm">View</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-info">
+    <h4>🚀 No jobs yet!</h4>
+    <p>Add your first job via <a href="/admin/">Admin Panel</a></p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
