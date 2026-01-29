@@ -27,3 +27,4 @@ wcwidth==0.3.5
 crispy-bootstrap5==2025.6
 django-crispy-forms==2.5
 djangorestframework_simplejwt==5.5.1
+drf-spectacular==0.29.0
