@@ -7,7 +7,7 @@ from .serializers import JobSerializer
 
 def job_list(request):
     jobs = Job.objects.all()
-    return render(request, 'jobs.html', {'jobs': jobs})
+    return render(request, 'jobs/jobs.html', {'jobs': jobs})
 
 
 class JobViewSet(viewsets.ModelViewSet):
