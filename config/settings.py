@@ -1,5 +1,6 @@
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 import dj_database_url
 import os
 
@@ -31,17 +32,22 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'crispy_forms', 
+    'crispy_forms',
     'crispy_bootstrap5',
 
-    'rest_framework',
     'jobs',
+
+    'rest_framework_simplejwt',
+    'rest_framework',
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Пока без auth
-    ]
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 MIDDLEWARE = [
@@ -83,14 +89,14 @@ if 'DATABASE_URL' in os.environ:
         'default': dj_database_url.parse(os.environ['DATABASE_URL'])
     }
 else:
-    # Local development 
+    # Local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'jobboard', 
+            'NAME': 'jobboard',
             'USER': 'user',
-            'PASSWORD': 'pass',  
-            'HOST': 'localhost',  
+            'PASSWORD': 'pass',
+            'HOST': 'localhost',
             'PORT': '5432',
         }
     }
@@ -134,3 +140,8 @@ STATIC_URL = 'static/'
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
