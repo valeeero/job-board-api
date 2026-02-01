@@ -1,51 +1,139 @@
-# Job Board API 🚀
+# **Job Board API** 🚀
 
-A production-ready Django REST API for job listings. Full CRUD, search, PostgreSQL + Docker. Portfolio project built in 3 hours.
+**Production Django DRF + JWT Auth MVP**
 
-## ✨ Features
+[
+[
+[
 
-- **Full CRUD** for Jobs & Companies
-- **Search & Filter** by title, location (`?title=Python&location=Kyiv`)
-- **Django Admin** with custom filters
-- **PostgreSQL** + **Docker Compose**
-- **DRF ViewSets** + Serializers
-- **Responsive API** (browsable interface)
+## **✨ Features**
 
-## ✨ Live Demo
+```
+✅ JWT Authentication: Login → Bearer token → Protected API
+✅ Responsive Frontend: Bootstrap + localStorage + Profile
+✅ Swagger OpenAPI: Interactive docs + Bearer auth
+✅ Search/Filter: ?title=Python&location=Remote
+✅ Production: Render + PostgreSQL
+✅ Local Dev: Docker Postgres
+```
 
-| Feature | URL |
-|---------|-----|
-| **Frontend** | https://job-board-api-kajq.onrender.com |
-| **API Docs** | https://job-board-api-kajq.onrender.com/api/jobs/ |
-| **Admin** | https://job-board-api-kajq.onrender.com/admin/ (admin/admin_admin123) |
+## **🎮 Live Demo**
 
-## 🛠️ Tech Stack
+```
+🌐 Frontend: https://job-board-api-kajq.onrender.com
+📋 API Docs: https://job-board-api-kajq.onrender.com/api/docs/
+🧪 Test: admin / admin123
+```
 
-Backend: Django REST Framework + PostgreSQL
-Frontend: Bootstrap 5
-Deploy: Render + Docker
-Tests: pytest (3/3 passed)
+**Demo Flow**:
 
-## 🛠 Quick Start
+1. **🔐 Login** → Token saved in localStorage
+2. **👤 My Jobs** → Username + Stats (protected)
+3. **🚪 Logout** → Clear token
+
+## **📁 Project Structure**
+
+```
+job_board/                 # Django project root
+├── config/               # Django settings
+│   └── settings/
+├── jobs/                 # Main app
+│   ├── migrations/
+│   ├── templates/jobs/   # Frontend HTML
+│   ├── tests.py          # pytest
+│   ├── models.py         # Job + Company
+│   ├── views.py          # DRF ViewSet
+│   └── serializers.py
+├── docker-compose.yml    # Postgres dev
+├── requirements.txt
+└── manage.py
+```
+
+## **🚀 Quick Start**
+
+### **Local Development**
 
 ```bash
-# Clone & Setup
 git clone https://github.com/valeeero/job-board-api.git
-cd job-board-api
-python -m venv venv && source venv/bin/activate  # Mac/Linux
+cd job_board
 
-# Docker Postgres
-docker compose up -d db
+# Start Postgres
+docker-compose up -d
 
-# Python deps
+# Backend
 pip install -r requirements.txt
-
-# Migrate & Run
 python manage.py migrate
-python manage.py createsuperuser
+python manage.py createsuperuser  # admin/admin123
 python manage.py runserver
+```
 
-## 🧪 Tests
+**Open**:
+
+- `http://localhost:8000` → Frontend
+- `http://localhost:8000/api/docs/` → Swagger
+
+### **Production**
+
+```
+✅ Render: GitHub → Auto-deploy (main branch)
+✅ Database: Managed PostgreSQL
+✅ HTTPS: Automatic SSL
+```
+
+## **🌐 API Endpoints**
+
+```
+📋 GET  /api/jobs/?title=Python → Job list + search
+👤 GET  /api/jobs/my_jobs/ → Profile + stats (Bearer required)
+🔐 POST /api/auth/ → {"username": "admin", "password": "admin123"}
+🔄 POST /api/auth/refresh/ → Token refresh
+📄 GET  /api/docs/ → Swagger UI
+```
+
+## **🧪 Testing**
+
 ```bash
-python manage.py test jobs.tests -v 2
-# 3 passed in 0.1s ✅
+pytest jobs/tests.py
+```
+
+## **📊 Deployment Status**
+
+| Feature          | Local | Render |
+| ---------------- | ----- | ------ |
+| JWT Auth Cycle   | ✅    | ✅     |
+| Frontend Profile | ✅    | ✅     |
+| Swagger Bearer   | ✅    | ✅     |
+| Job Search       | ✅    | ✅     |
+| Docker Postgres  | ✅    | N/A    |
+
+## **📈 Roadmap**
+
+```
+✅ MVP: Auth + Jobs + Profile
+⏳ Owner companies (user → jobs)
+⏳ Job applications
+⏳ Redis cache + rate limit
+```
+
+## **💼 Skills Demonstrated**
+
+```
+• Django 5 + DRF ViewSets
+• SimpleJWT: Full auth cycle
+• Swagger (drf-spectacular)
+• Bootstrap 5 + Vanilla JS
+• Docker + Render deploy
+• PostgreSQL production
+```
+
+---
+
+⭐ **Star if useful** | 👨‍💻 **Fork & deploy** | 💬 **Issues welcome**
+
+```
+# Portfolio → Interview ready
+# Junior Django/DRF → Remote OK
+# Made by @valeeero
+```
+
+---
