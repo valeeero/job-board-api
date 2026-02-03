@@ -3,4 +3,5 @@ from . import views
 
 router = DefaultRouter()
 router.register(r'jobs', views.JobViewSet)
+router.register(r'profile', views.CandidateProfileViewSet)
 urlpatterns = router.urls

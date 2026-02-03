@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from jobs.views import JobViewSet, job_list
+from jobs.views import JobViewSet, job_list, CandidateProfileViewSet
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView, TokenRefreshView, TokenVerifyView
@@ -9,6 +9,7 @@ from rest_framework_simplejwt.views import (
 
 router = DefaultRouter()
 router.register(r'jobs', JobViewSet)
+router.register(r'profile', CandidateProfileViewSet)
 
 urlpatterns = [
     path('', job_list, name='job_list'),
