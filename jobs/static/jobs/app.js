@@ -211,4 +211,131 @@ async function applyToJob(jobId) {
   }
 }
 
+async function loadProfile() {
+  const token = localStorage.getItem("token");
+  const container = document.getElementById("profileForm");
+
+  if (!token) {
+    container.innerHTML = `
+      <div class="alert alert-warning">
+        🔐 Please <a href="/" onclick="showLogin()">login</a> first
+      </div>`;
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/profile/me/", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const profile = await res.json();
+
+    container.innerHTML = `
+      <form id="saveForm" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Location</label>
+          <input type="text" class="form-control" id="location" value="${profile.location || ""}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Experience</label>
+          <select class="form-select" id="experience_range">
+            <option value="">Select...</option>
+            <option value="lt1" ${profile.experience_range === "lt1" ? "selected" : ""}>< 1 year</option>
+            <option value="1_2" ${profile.experience_range === "1_2" ? "selected" : ""}>1-2 years</option>
+            <option value="2_3" ${profile.experience_range === "2_3" ? "selected" : ""}>2-3 years</option>
+            <option value="3_5" ${profile.experience_range === "3_5" ? "selected" : ""}>3-5 years</option>
+            <option value="5_8" ${profile.experience_range === "5_8" ? "selected" : ""}>5-8 years</option>
+            <option value="8plus" ${profile.experience_range === "8plus" ? "selected" : ""}>8+ years</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Salary expectation ($)</label>
+          <input type="number" class="form-control" id="salary_expectation" value="${profile.salary_expectation || ""}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">English level</label>
+          <select class="form-select" id="english_level">
+            <option value="">Select...</option>
+            <option value="A1" ${profile.english_level === "A1" ? "selected" : ""}>A1</option>
+            <option value="A2" ${profile.english_level === "A2" ? "selected" : ""}>A2</option>
+            <option value="B1" ${profile.english_level === "B1" ? "selected" : ""}>B1</option>
+            <option value="B2" ${profile.english_level === "B2" ? "selected" : ""}>B2</option>
+            <option value="C1" ${profile.english_level === "C1" ? "selected" : ""}>C1</option>
+            <option value="C2" ${profile.english_level === "C2" ? "selected" : ""}>C2</option>
+          </select>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Bio</label>
+          <textarea class="form-control" id="bio" rows="3">${profile.bio || ""}</textarea>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Skills (comma-separated)</label>
+          <input type="text" class="form-control" id="skills" value="${(profile.skills || []).join(", ")}">
+          <small class="text-muted">Separate skills with commas</small>
+        </div>
+
+
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">💾 Save Profile</button>
+          <span id="saveStatus" class="ms-2"></span>
+        </div>
+      </form>
+    `;
+
+    document.getElementById("saveForm").addEventListener("submit", saveProfile);
+  } catch (err) {
+    container.innerHTML =
+      '<div class="alert alert-danger">❌ Error loading profile</div>';
+  }
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+  const token = localStorage.getItem("token");
+  const status = document.getElementById("saveStatus");
+
+  const data = {
+    location: document.getElementById("location").value,
+    experience_range: document.getElementById("experience_range").value,
+    salary_expectation:
+      document.getElementById("salary_expectation").value || null,
+    english_level: document.getElementById("english_level").value,
+    bio: document.getElementById("bio").value,
+    skills: document
+      .getElementById("skills")
+      .value.split(",")
+      .map((s) => s.trim())
+      .filter((s) => s),
+  };
+
+  status.innerHTML = '<span class="text-muted">Saving...</span>';
+
+  try {
+    const res = await fetch("/api/profile/me/", {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (res.ok) {
+      status.innerHTML = '<span class="text-success">✅ Saved!</span>';
+      setTimeout(() => (status.innerHTML = ""), 3000);
+    } else {
+      const err = await res.json();
+      status.innerHTML = `<span class="text-danger">❌ ${JSON.stringify(err)}</span>`;
+    }
+  } catch (err) {
+    status.innerHTML = '<span class="text-danger">❌ Network error</span>';
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadProfile);
+
 document.addEventListener("DOMContentLoaded", updateAuthStatus);
