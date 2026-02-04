@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, status, filters
+from rest_framework import viewsets, permissions, status, filters, mixins
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from rest_framework.views import APIView
@@ -75,7 +75,8 @@ class JobViewSet(viewsets.ModelViewSet):
         })
 
 
-class CandidateProfileViewSet(viewsets.ModelViewSet):
+class CandidateProfileViewSet(mixins.RetrieveModelMixin,
+                              viewsets.GenericViewSet):
     queryset = CandidateProfile.objects.all()
     serializer_class = CandidateProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -85,6 +86,26 @@ class CandidateProfileViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['get', 'put', 'patch'])
+    def me(self, request):
+        profile, created = CandidateProfile.objects.get_or_create(
+            user=request.user)
+
+        if request.method == 'GET':
+            serializer = CandidateProfileSerializer(profile)
+            return Response(serializer.data)
+
+        elif request.method in ['PUT', 'PATCH']:
+            serializer = CandidateProfileSerializer(
+                profile,
+                data=request.data,
+                partial=(request.method == 'PATCH')
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplyView(APIView):
