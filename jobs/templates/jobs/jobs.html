@@ -87,10 +87,13 @@
           <h6 class="card-subtitle text-muted">{{ job.company.name }}</h6>
           <p class="card-text">{{ job.description|truncatewords:15 }}</p>
           <a href="#" class="btn btn-outline-primary btn-sm">View</a>
-          <form method="post" action="{% url 'job-apply' job.id %}">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
-          </form>
+          <button
+            onclick="applyToJob({{ job.id }})"
+            class="btn btn-primary btn-sm"
+            id="apply-btn-{{ job.id }}"
+          >
+            Apply
+          </button>
         </div>
       </div>
     </div>

@@ -167,5 +167,48 @@ async function loadMyApplications() {
     content.innerHTML = '<div class="alert alert-danger">❌ API Error</div>';
   }
 }
+async function applyToJob(jobId) {
+  const token = localStorage.getItem("token");
+  const btn = document.getElementById(`apply-btn-${jobId}`);
+
+  if (!token) {
+    alert("⚠️ Please login first!");
+    showLogin();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Applying...";
+
+  try {
+    const res = await fetch(`/api/jobs/${jobId}/apply/`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await res.json();
+
+    if (res.status === 201) {
+      btn.className = "btn btn-success btn-sm";
+      btn.textContent = "✅ Applied";
+      btn.disabled = true;
+    } else if (res.status === 400 && data.detail === "Already applied") {
+      btn.className = "btn btn-secondary btn-sm";
+      btn.textContent = "Already applied";
+      btn.disabled = true;
+    } else {
+      alert(`❌ Error: ${data.detail || "Unknown error"}`);
+      btn.disabled = false;
+      btn.textContent = "Apply";
+    }
+  } catch (err) {
+    alert("❌ Network error");
+    btn.disabled = false;
+    btn.textContent = "Apply";
+  }
+}
 
 document.addEventListener("DOMContentLoaded", updateAuthStatus);
