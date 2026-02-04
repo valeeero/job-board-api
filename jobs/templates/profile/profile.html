@@ -1,193 +1,108 @@
 {% extends "base.html" %} 
-
 {% block title %}My Profile{% endblock %} 
-
 {% block content %}
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">My Profile</h4>
-                </div>
-                <div class="card-body">
-                <form id="profileForm">
-                    <div class="mb-3">
-                    <label class="form-label">Skills (comma separated)</label>
-                    <input
-                        type="text"
-                        class="form-control"
-                        id="skills"
-                        placeholder="Python, Django, SQL"
-                    />
-                    <div class="form-text">
-                        Use comma to separate skills. Example: Python, Django, REST, PostgreSQL
-                    </div>
-                    </div>
-
-                    <div class="mb-3">
-                    <label class="form-label d-block">Experience</label>
-                    <div class="form-check form-check-inline">
-                        <input
-                        class="form-check-input"
-                        type="radio"
-                        name="experience_range"
-                        value="lt1"
-                        id="exp_lt1"
-                        />
-                        <label class="form-check-label" for="exp_lt1">&lt; 1 year</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input
-                        class="form-check-input"
-                        type="radio"
-                        name="experience_range"
-                        value="1_2"
-                        id="exp_1_2"
-                        />
-                        <label class="form-check-label" for="exp_1_2">1–2 years</label>
-                    </div>
-                    <!-- TODO: add more options -->
-                    </div>
-
-                    <div class="mb-3">
-                    <label class="form-label">Salary expectation ($/month)</label>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="salary_expectation"
-                        placeholder="1500"
-                    />
-                    </div>
-
-                    <div class="mb-3">
-                    <label class="form-label">Location</label>
-                    <input
-                        type="text"
-                        class="form-control"
-                        id="location"
-                        placeholder="Remote, Odessa"
-                    />
-                    </div>
-
-                    <div class="mb-3">
-                    <label class="form-label">English level</label>
-                    <select class="form-select" id="english_level">
-                        <option value="">Select...</option>
-                        <option value="A1">A1 – Beginner</option>
-                        <option value="A2">A2 – Elementary</option>
-                        <option value="B1">B1 – Intermediate</option>
-                        <option value="B2">B2 – Upper-Intermediate</option>
-                        <option value="C1">C1 – Advanced</option>
-                        <option value="C2">C2 – Proficient</option>
-                    </select>
-                    </div>
-
-                    <div class="mb-3">
-                    <label class="form-label">Bio</label>
-                    <textarea
-                        class="form-control"
-                        id="bio"
-                        rows="3"
-                        placeholder="Short summary about you..."
-                    ></textarea>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100">
-                    Save Profile
-                    </button>
-                </form>
-                <div id="message" class="mt-3"></div>
-                </div>
-            </div>
-            </div>
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">My Profile</h4>
         </div>
+        <div class="card-body">
+          <form id="profileForm">
+            <div class="mb-3">
+              <label class="form-label">Skills (comma separated)</label>
+              <input
+                type="text"
+                class="form-control"
+                id="skills"
+                placeholder="Python, Django, SQL"
+              />
+              <div class="form-text">
+                Use comma to separate skills. Example: Python, Django, REST,
+                PostgreSQL
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label d-block">Experience</label>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="experience_range"
+                  value="lt1"
+                  id="exp_lt1"
+                />
+                <label class="form-check-label" for="exp_lt1"
+                  >&lt; 1 year</label
+                >
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="experience_range"
+                  value="1_2"
+                  id="exp_1_2"
+                />
+                <label class="form-check-label" for="exp_1_2">1–2 years</label>
+              </div>
+              <!-- TODO: add more options -->
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Salary expectation ($/month)</label>
+              <input
+                type="number"
+                class="form-control"
+                id="salary_expectation"
+                placeholder="1500"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Location</label>
+              <input
+                type="text"
+                class="form-control"
+                id="location"
+                placeholder="Remote, Odessa"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">English level</label>
+              <select class="form-select" id="english_level">
+                <option value="">Select...</option>
+                <option value="A1">A1 – Beginner</option>
+                <option value="A2">A2 – Elementary</option>
+                <option value="B1">B1 – Intermediate</option>
+                <option value="B2">B2 – Upper-Intermediate</option>
+                <option value="C1">C1 – Advanced</option>
+                <option value="C2">C2 – Proficient</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Bio</label>
+              <textarea
+                class="form-control"
+                id="bio"
+                rows="3"
+                placeholder="Short summary about you..."
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+              Save Profile
+            </button>
+          </form>
+          <div id="message" class="mt-3"></div>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <script>
-    let token = localStorage.getItem("token");
-    let profileId = null;
-
-    if (!token) {
-        document.getElementById("message").innerHTML =
-        '<div class="alert alert-warning">Please <a href="/login/">login</a> first</div>';
-    } else {
-        // Load profile
-        fetch("/api/profile/", {
-        headers: { Authorization: `Bearer ${token}` },
-        })
-        .then((response) => {
-            if (!response.ok) throw new Error("Unauthorized");
-            return response.json();
-        })
-        .then((data) => {
-            const profile = data[0];
-            if (!profile) return;
-
-            profileId = profile.id;
-
-            if (profile.skills)
-            document.getElementById("skills").value = profile.skills.join(",");
-
-            const expRadio = document.querySelector(
-            `input[name="experience_range"][value="${profile.experience_range}"]`,
-            );
-            if (expRadio) expRadio.checked = true;
-
-            document.getElementById("salary_expectation").value =
-            profile.salary_expectation || "";
-            document.getElementById("location").value = profile.location || "";
-            document.getElementById("english_level").value =
-            profile.english_level || "";
-            document.getElementById("bio").value = profile.bio || "";
-        })
-        .catch((error) => {
-            document.getElementById("message").innerHTML =
-            '<div class="alert alert-danger">Login expired. <a href="/login/">Login again</a></div>';
-        });
-
-        // Save form
-        document.getElementById("profileForm").onsubmit = function (e) {
-        e.preventDefault();
-
-        if (!profileId) {
-            document.getElementById("message").innerHTML =
-            '<div class="alert alert-danger">Profile not loaded yet. Please refresh page.</div>';
-            return;
-        }
-
-        let skills = document
-            .getElementById("skills")
-            .value.split(",")
-            .map((s) => s.trim())
-            .filter((s) => s);
-
-        let formData = {
-            skills: skills,
-            experience_range:
-            document.querySelector('input[name="experience_range"]:checked')
-                ?.value || "",
-            salary_expectation:
-            parseInt(document.getElementById("salary_expectation").value) || null,
-            location: document.getElementById("location").value,
-            english_level: document.getElementById("english_level").value,
-            bio: document.getElementById("bio").value,
-        };
-
-        fetch(`/api/profile/${profileId}/`, {
-            method: "PUT",
-            headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-        })
-            .then((r) => r.json())
-            .then(() => {
-            document.getElementById("message").innerHTML =
-                '<div class="alert alert-success">Profile saved!</div>';
-            });
-        };
-    }
-    </script>
 {% endblock %}

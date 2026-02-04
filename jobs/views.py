@@ -1,10 +1,11 @@
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.shortcuts import render
-from .models import Job, CandidateProfile
-from .serializers import JobSerializer, CandidateProfileSerializer
+from django.shortcuts import render, get_object_or_404
+from .models import Job, CandidateProfile, Application
+from .serializers import JobSerializer, CandidateProfileSerializer, ApplicationSerializer
 
 
 def job_list(request):
@@ -84,3 +85,26 @@ class CandidateProfileViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+class ApplyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, job_id):
+        job = get_object_or_404(Job, pk=job_id)
+        candidate = get_object_or_404(CandidateProfile, user=request.user)
+
+        application, created = Application.objects.get_or_create(
+            job=job,
+            candidate=candidate,
+            defaults={'cover_letter': request.data.get('cover_letter', '')},
+        )
+
+        if not created:
+            return Response(
+                {'detail': 'Already applied'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = ApplicationSerializer(application)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

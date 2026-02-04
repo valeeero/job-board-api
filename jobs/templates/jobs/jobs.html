@@ -7,12 +7,12 @@
     </div>
   </div>
 
-  <div class="row  mb-5">
+  <div class="row mb-5">
     <div class="col">
       <a href="/admin/" class="btn btn-success btn-lg me-2">🛠️ Admin Panel</a>
       <a href="/api/jobs/" class="btn btn-info btn-lg me-2">📊 API Docs</a>
       <a href="#" class="btn btn-secondary btn-lg">➕ Add Job (soon)</a>
-      <br>  
+      <br />
 
       <div class="btn-group me-2 mt-2 mb-4" role="group">
         <button onclick="showMyJobs()" class="btn btn-success">
@@ -80,6 +80,10 @@
           <h6 class="card-subtitle text-muted">{{ job.company.name }}</h6>
           <p class="card-text">{{ job.description|truncatewords:15 }}</p>
           <a href="#" class="btn btn-outline-primary btn-sm">View</a>
+          <form method="post" action="{% url 'job-apply' job.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+          </form>
         </div>
       </div>
     </div>
@@ -117,126 +121,5 @@
     cursor: pointer;
   }
 </style>
-
-<script>
-  function showLogin() {
-    document.getElementById("loginModal").style.display = "block";
-  }
-
-  function hideLogin() {
-    document.getElementById("loginModal").style.display = "none";
-  }
-
-  function updateAuthStatus() {
-    const token = localStorage.getItem("token");
-    const el = document.getElementById("authStatus");
-    const logoutBtn = document.getElementById("logoutBtn");
-
-    if (!el) return;
-
-    if (token) {
-      el.className = "badge bg-success ms-1";
-      el.textContent = "✅ Logged in";
-      if (logoutBtn) logoutBtn.style.display = "inline-block";
-    } else {
-      el.className = "badge bg-danger ms-1";
-      el.textContent = "❌ Not logged in";
-      if (logoutBtn) logoutBtn.style.display = "none";
-    }
-  }
-
-  async function authGet(url) {
-    const token = localStorage.getItem("token");
-    const headers = { "Content-Type": "application/json" };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-    const res = await fetch(url, { headers });
-    return res.json();
-  }
-
-  async function apiLogin() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    try {
-      const res = await fetch("/api/auth/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json();
-
-      if (data.access) {
-        localStorage.setItem("token", data.access);
-
-        document.getElementById("tokenResult").innerHTML =
-          `<div class="alert alert-success">
-             ✅ Token saved!
-             <br><small>${data.access.slice(0, 30)}...</small>
-           </div>`;
-
-        hideLogin();
-        updateAuthStatus();
-      } else {
-        document.getElementById("tokenResult").innerHTML =
-          `<div class="alert alert-danger">
-             ❌ Login failed
-           </div>`;
-      }
-    } catch (err) {
-      document.getElementById("tokenResult").innerHTML =
-        '<div class="alert alert-danger">❌ Error</div>';
-    }
-  }
-
-  function logout() {
-    localStorage.removeItem("token");
-    document.getElementById("myJobsSection").style.display = "none";
-    updateAuthStatus();
-    document.getElementById("logoutBtn").style.display = "none";
-
-    // Показать что вышел
-    const content = document.getElementById("myJobsContent");
-    if (content) {
-      content.innerHTML =
-        '<div class="alert alert-info">🔓 Logged out successfully</div>';
-      document.getElementById("myJobsSection").style.display = "block";
-    }
-  }
-
-  // Нажатие на My Jobs
-  async function showMyJobs() {
-    const section = document.getElementById("myJobsSection");
-    const content = document.getElementById("myJobsContent");
-    section.style.display = "block";
-    content.innerHTML = '<div class="spinner-border"></div> Loading...';
-
-    try {
-      const data = await authGet("/api/jobs/my_jobs/");
-
-      if (!data.is_authenticated) {
-        content.innerHTML = `
-          <div class="alert alert-warning">
-            🔐 <strong>Login first!</strong><br>
-            <small>Token: ${localStorage.getItem("token") ? "Saved ✓" : "Missing"}</small>
-          </div>`;
-        return;
-      }
-
-      content.innerHTML = `
-        <div class="alert alert-success mb-3">
-          ✅ <strong>${data.username}</strong> (id: ${data.user_id})<br>
-          📧 ${data.user_email || "no email"}<br>
-          📊 Total jobs: ${data.total_jobs} | Active: ${data.active_jobs}
-        </div>`;
-    } catch (err) {
-      content.innerHTML = '<div class="alert alert-danger">❌ API Error</div>';
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", updateAuthStatus);
-</script>
 
 {% endblock %}

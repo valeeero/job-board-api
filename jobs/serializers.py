@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Job, Company, CandidateProfile
+from .models import Job, Company, CandidateProfile, Application
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -29,11 +29,16 @@ class CandidateProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ['user', 'created_at', 'updated_at']
 
     def create(self, validated_data):
-        """Автоматически ставим user из request.user"""
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        """Для update тоже"""
         validated_data['user'] = instance.user
         return super().update(instance, validated_data)
+
+
+class ApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Application
+        fields = ['id', 'job', 'candidate', 'cover_letter', 'created_at']
+        read_only_fields = ['id', 'candidate', 'created_at']
