@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import render, get_object_or_404
 from .models import Job, CandidateProfile, Application
-from .serializers import JobSerializer, CandidateProfileSerializer, ApplicationSerializer
+from .serializers import JobSerializer, CandidateProfileSerializer, ApplicationSerializer, MyApplicationSerializer
 
 
 def job_list(request):
@@ -108,3 +108,17 @@ class ApplyView(APIView):
 
         serializer = ApplicationSerializer(application)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class MyApplicationsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        candidate = CandidateProfile.objects.filter(user=request.user).first()
+        if not candidate:
+            return Response({'results': []})
+
+        qs = Application.objects.filter(
+            candidate=candidate).select_related('job__company')
+        serializer = MyApplicationSerializer(qs, many=True)
+        return Response({'results': serializer.data})

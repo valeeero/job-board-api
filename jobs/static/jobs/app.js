@@ -128,4 +128,44 @@ async function showMyJobs() {
   }
 }
 
+async function loadMyApplications() {
+  const section = document.getElementById("myJobsSection");
+  const content = document.getElementById("myJobsContent");
+  if (!section || !content) return;
+
+  section.style.display = "block";
+  content.innerHTML = '<div class="spinner-border"></div> Loading...';
+
+  try {
+    const data = await authGet("/api/my_applications/");
+
+    const apps = data.results || [];
+    if (!apps.length) {
+      content.innerHTML =
+        '<div class="alert alert-info">No applications yet</div>';
+      return;
+    }
+
+    const items = apps
+      .map(
+        (a) => `
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span><strong>${a.job_title}</strong> @ ${a.company_name}</span>
+        <span class="badge bg-secondary">
+          ${new Date(a.created_at).toLocaleDateString()}
+        </span>
+      </li>
+    `,
+      )
+      .join("");
+
+    content.innerHTML = `
+      <div class="mb-2 fw-bold">My applications:</div>
+      <ul class="list-group">${items}</ul>
+    `;
+  } catch (err) {
+    content.innerHTML = '<div class="alert alert-danger">❌ API Error</div>';
+  }
+}
+
 document.addEventListener("DOMContentLoaded", updateAuthStatus);
