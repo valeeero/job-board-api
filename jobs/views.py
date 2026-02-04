@@ -82,7 +82,5 @@ class CandidateProfileViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return CandidateProfile.objects.filter(user=self.request.user)
 
-    def get_object(self):
-        profile, created = CandidateProfile.objects.get_or_create(
-            user=self.request.user)
-        return profile
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
