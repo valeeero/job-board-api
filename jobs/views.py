@@ -1,14 +1,16 @@
-from rest_framework import viewsets, permissions, status, filters, mixins
+from rest_framework import viewsets, permissions, status, filters
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import render, get_object_or_404
+from drf_spectacular.utils import extend_schema
 from .models import Job, CandidateProfile, Application
 from .serializers import JobSerializer, CandidateProfileSerializer, ApplicationSerializer, MyApplicationSerializer
 
 
 def job_list(request):
+    """HTML view: render jobs list."""
     jobs = Job.objects.filter(is_active=True).select_related('company')
     return render(request, 'jobs/jobs.html', {'jobs': jobs})
 
@@ -20,11 +22,10 @@ class JobPagination(PageNumberPagination):
 
 
 class JobViewSet(viewsets.ModelViewSet):
+    """API: CRUD for Job model with search/filter."""
     queryset = Job.objects.filter(is_active=True).select_related('company')
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    # 🔹 pagination + ordering
     pagination_class = JobPagination
     filter_backends = [filters.OrderingFilter]
     ordering_fields = ['created_at', 'salary_min', 'salary_max']
@@ -32,88 +33,63 @@ class JobViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Search + filter by title, location, salary."""
-        queryset = Job.objects.filter(is_active=True).select_related('company')
-
+        queryset = super().get_queryset()
         params = self.request.query_params
-        title = params.get('title')
-        location = params.get('location')
-        min_salary = params.get('min_salary')
-        max_salary = params.get('max_salary')
 
-        if title:
+        if title := params.get('title'):
             queryset = queryset.filter(title__icontains=title)
-        if location:
+        if location := params.get('location'):
             queryset = queryset.filter(location__icontains=location)
-        if min_salary:
+        if min_salary := params.get('min_salary'):
             queryset = queryset.filter(salary_min__gte=min_salary)
-        if max_salary:
+        if max_salary := params.get('max_salary'):
             queryset = queryset.filter(salary_max__lte=max_salary)
 
         return queryset
 
-    @action(detail=False, methods=['get'])
-    def my_jobs(self, request):
-        """🔒 Protected: User profile + stats"""
-        user = request.user
 
-        return Response({
-            'status': 'success',
-            'is_authenticated': user.is_authenticated,
-            'user_id': user.id if user.is_authenticated else None,
-            'username': user.username if user.is_authenticated else 'Anonymous',
-            'user_email': getattr(user, 'email', 'No email') if user.is_authenticated else None,
-            'total_jobs': Job.objects.count(),
-            'active_jobs': Job.objects.filter(is_active=True).count(),
-        })
-
-    @action(detail=False, methods=['get'])
-    def debug_auth(self, request):
-        return Response({
-            'user': request.user.username,
-            'is_authenticated': request.user.is_authenticated,
-            'headers': dict(list(request.headers.items())[:5]),
-        })
-
-
-class CandidateProfileViewSet(mixins.RetrieveModelMixin,
-                              viewsets.GenericViewSet):
+class CandidateProfileViewSet(viewsets.GenericViewSet):
+    """API: Candidate profile management."""
     queryset = CandidateProfile.objects.all()
     serializer_class = CandidateProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return CandidateProfile.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
     @action(detail=False, methods=['get', 'put', 'patch'])
     def me(self, request):
-        profile, created = CandidateProfile.objects.get_or_create(
-            user=request.user)
+        """GET/PUT/PATCH /api/profile/me/ — current user profile."""
+        profile, _ = CandidateProfile.objects.get_or_create(user=request.user)
 
         if request.method == 'GET':
             serializer = CandidateProfileSerializer(profile)
             return Response(serializer.data)
 
-        elif request.method in ['PUT', 'PATCH']:
-            serializer = CandidateProfileSerializer(
-                profile,
-                data=request.data,
-                partial=(request.method == 'PATCH')
-            )
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # PUT/PATCH
+        serializer = CandidateProfileSerializer(
+            profile,
+            data=request.data,
+            partial=(request.method == 'PATCH')
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplyView(APIView):
+    """POST /api/jobs/<id>/apply/ — apply to job."""
     permission_classes = [permissions.IsAuthenticated]
+
+    @extend_schema(
+        request=ApplicationSerializer,
+        responses={201: ApplicationSerializer, 400: {
+            'description': 'Already applied'}},
+        description="Apply to a job. Creates an application record."
+    )
 
     def post(self, request, job_id):
         job = get_object_or_404(Job, pk=job_id)
-        candidate = get_object_or_404(CandidateProfile, user=request.user)
+        candidate, _ = CandidateProfile.objects.get_or_create(
+            user=request.user)
 
         application, created = Application.objects.get_or_create(
             job=job,
@@ -132,7 +108,13 @@ class ApplyView(APIView):
 
 
 class MyApplicationsView(APIView):
+    """GET /api/my_applications/ — list user applications."""
     permission_classes = [permissions.IsAuthenticated]
+
+    @extend_schema(
+        responses={200: MyApplicationSerializer(many=True)},
+        description="Get all applications for current user."
+    )
 
     def get(self, request):
         candidate = CandidateProfile.objects.filter(user=request.user).first()

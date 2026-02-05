@@ -10,13 +10,14 @@
   <div class="row mb-5">
     <div class="col">
       <a href="/admin/" class="btn btn-success btn-lg me-2">🛠️ Admin Panel</a>
-      <a href="/api/jobs/" class="btn btn-info btn-lg me-2">📊 API Docs</a>
+      <a href="/api/docs/" class="btn btn-info btn-lg me-2">📊 API Docs</a>
       <a href="#" class="btn btn-secondary btn-lg">➕ Add Job (soon)</a>
       <br />
 
-      <div class="btn-group me-2 mt-2 mb-4" role="group">
-        <button onclick="showMyJobs()" class="btn btn-success">
-          👤 My Jobs
+      <!-- Auth controls -->
+      <div class="btn-group me-2 mt-3 mb-4" role="group">
+        <button onclick="loadMyApplications()" class="btn btn-success">
+          📋 My Applications
           <span id="authStatus" class="badge bg-secondary ms-1">?</span>
         </button>
         <button
@@ -27,33 +28,24 @@
         >
           🚪 Logout
         </button>
-        <button class="btn btn-success" onclick="loadMyApplications()">
-          My Jobs
-        </button>
       </div>
 
-      <div id="myJobsSection" style="display: none">
-        <div id="myJobsContent"></div>
-      </div>
+      <!-- JWT Login button -->
+      <button class="btn btn-outline-primary mt-3" onclick="showLogin()">
+        🔐 API Login (admin/admin_admin123)
+      </button>
     </div>
   </div>
 
-  <!-- Блок результата My Jobs -->
+  <!-- My Applications section -->
   <div id="myJobsSection" class="mt-4 mb-3" style="display: none">
-    <h3>🎯 My Profile & Jobs</h3>
+    <h3>📋 My Applications</h3>
     <div id="myJobsContent">Loading...</div>
   </div>
 
   <h3 class="mt-4">📋 Available Jobs:</h3>
 
-  <!-- JWT Login -->
-  <div class="mb-4">
-    <button class="btn btn-outline-primary" onclick="showLogin()">
-      🔐 API Login (admin/admin)
-    </button>
-  </div>
-
-  <!-- Modal -->
+  <!-- Login Modal -->
   <div id="loginModal" class="modal" style="display: none">
     <div class="modal-content">
       <span onclick="hideLogin()" class="close">&times;</span>
@@ -69,7 +61,7 @@
         id="password"
         type="password"
         class="form-control mb-2"
-        value="admin"
+        value="admin123"
         placeholder="Password"
       />
       <button onclick="apiLogin()" class="btn btn-primary w-100">Login</button>
@@ -77,6 +69,7 @@
     </div>
   </div>
 
+  <!-- Jobs list -->
   {% if jobs %}
   <div class="row mt-4">
     {% for job in jobs %}
@@ -131,5 +124,4 @@
     cursor: pointer;
   }
 </style>
-
 {% endblock %}

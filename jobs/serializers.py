@@ -28,23 +28,16 @@ class CandidateProfileSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['user', 'created_at', 'updated_at']
 
-    def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        validated_data['user'] = instance.user
-        return super().update(instance, validated_data)
-
 
 class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
         fields = ['id', 'job', 'candidate', 'cover_letter', 'created_at']
-        read_only_fields = ['id', 'candidate', 'created_at']
+        read_only_fields = ['id', 'job', 'candidate', 'created_at']
 
 
 class MyApplicationSerializer(serializers.ModelSerializer):
+    """Read-only serializer for user's applications list."""
     job_title = serializers.CharField(source='job.title', read_only=True)
     company_name = serializers.CharField(
         source='job.company.name', read_only=True)
@@ -52,4 +45,3 @@ class MyApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
         fields = ['id', 'job', 'job_title', 'company_name', 'created_at']
-        read_only_fields = fields
