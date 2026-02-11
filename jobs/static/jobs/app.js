@@ -9,11 +9,128 @@ function hideLogin() {
   if (modal) modal.style.display = "none";
 }
 
+// === Add Job Modal ===
+function showAddJob() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    showToast("⚠️ Please login first", "warning");
+    showLogin();
+    return;
+  }
+
+  const modal = document.getElementById("addJobModal");
+  if (modal) {
+    modal.style.display = "block";
+    loadCompanies();
+  }
+}
+
+function hideAddJob() {
+  const modal = document.getElementById("addJobModal");
+  if (modal) modal.style.display = "none";
+  document.getElementById("addJobForm").reset();
+}
+
+// === Load Companies for Dropdown ===
+async function loadCompanies() {
+  try {
+    const token = localStorage.getItem("token");
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch("/api/jobs/", { headers });
+    const data = await res.json();
+
+    // Handle pagination
+    const jobs = data.results || data || [];
+
+    // Extract unique companies
+    const companiesMap = new Map();
+    jobs.forEach((job) => {
+      if (job.company && job.company.id && job.company.name) {
+        companiesMap.set(job.company.id, job.company.name);
+      }
+    });
+
+    const select = document.getElementById("jobCompany");
+    if (!select) return;
+
+    let options = '<option value="">Select company...</option>';
+    companiesMap.forEach((name, id) => {
+      options += `<option value="${id}">${name}</option>`;
+    });
+
+    select.innerHTML = options;
+  } catch (err) {
+    console.error("Error loading companies:", err);
+    showToast("⚠️ Failed to load companies", "warning");
+  }
+}
+
+// === Create Job ===
+async function createJob(e) {
+  e.preventDefault();
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    showToast("⚠️ Please login first", "warning");
+    return;
+  }
+
+  const status = document.getElementById("addJobStatus");
+  const submitBtn = document.querySelector('#addJobForm button[type="submit"]');
+
+  const jobData = {
+    title: document.getElementById("jobTitle").value,
+    company_id: parseInt(document.getElementById("jobCompany").value),
+    description: document.getElementById("jobDescription").value,
+    salary_min: document.getElementById("jobSalaryMin").value || null,
+    salary_max: document.getElementById("jobSalaryMax").value || null,
+    location: document.getElementById("jobLocation").value,
+    skills: document.getElementById("jobSkills").value,
+    is_active: true,
+  };
+
+  status.textContent = "Creating...";
+  submitBtn.disabled = true;
+
+  try {
+    const res = await fetch("/api/jobs/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(jobData),
+    });
+
+    if (res.ok) {
+      status.textContent = "";
+      submitBtn.disabled = false;
+      hideAddJob();
+      showToast("✅ Job created successfully!", "success");
+
+      // Reload page to show new job
+      setTimeout(() => window.location.reload(), 1500);
+    } else {
+      const err = await res.json();
+      status.textContent = "";
+      submitBtn.disabled = false;
+      showToast(`❌ ${JSON.stringify(err)}`, "error");
+    }
+  } catch (err) {
+    status.textContent = "";
+    submitBtn.disabled = false;
+    showToast("❌ Network error", "error");
+  }
+}
+
 // === Auth Status Badge ===
 function updateAuthStatus() {
   const token = localStorage.getItem("token");
   const el = document.getElementById("authStatus");
   const logoutBtn = document.getElementById("logoutBtn");
+  const loginBtn = document.getElementById("loginBtn");
 
   if (!el) return;
 
@@ -21,10 +138,12 @@ function updateAuthStatus() {
     el.className = "badge bg-success ms-1";
     el.textContent = "✅ Logged in";
     if (logoutBtn) logoutBtn.style.display = "inline-block";
+    if (loginBtn) loginBtn.style.display = "none";
   } else {
     el.className = "badge bg-danger ms-1";
     el.textContent = "❌ Not logged in";
     if (logoutBtn) logoutBtn.style.display = "none";
+    if (loginBtn) loginBtn.style.display = "inline-block";
   }
 }
 
@@ -48,6 +167,8 @@ async function apiLogin() {
   const username = usernameEl.value;
   const password = passwordEl.value;
 
+  resultEl.textContent = "Logging in...";
+
   try {
     const res = await fetch("/api/auth/", {
       method: "POST",
@@ -59,21 +180,18 @@ async function apiLogin() {
 
     if (data.access) {
       localStorage.setItem("token", data.access);
-
-      resultEl.innerHTML = `<div class="alert alert-success">
-           ✅ Token saved!
-           <br><small>${data.access.slice(0, 30)}...</small>
-         </div>`;
-
+      resultEl.textContent = "";
       hideLogin();
       updateAuthStatus();
+      await checkAppliedJobs();
+      showToast("✅ Logged in successfully!", "success");
     } else {
-      resultEl.innerHTML = `<div class="alert alert-danger">
-           ❌ Login failed
-         </div>`;
+      resultEl.textContent = "❌ Login failed";
+      showToast("❌ Invalid credentials", "error");
     }
   } catch (err) {
-    resultEl.innerHTML = '<div class="alert alert-danger">❌ Error</div>';
+    resultEl.textContent = "❌ Error";
+    showToast("❌ Connection error", "error");
   }
 }
 
@@ -82,16 +200,42 @@ function logout() {
   localStorage.removeItem("token");
   updateAuthStatus();
 
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) logoutBtn.style.display = "none";
-
   const section = document.getElementById("myJobsSection");
-  const content = document.getElementById("myJobsContent");
+  if (section) section.style.display = "none";
 
-  if (content && section) {
-    content.innerHTML =
-      '<div class="alert alert-info">🔓 Logged out successfully</div>';
-    section.style.display = "block";
+  resetApplyButtons();
+  showToast("🔓 Logged out successfully", "info");
+}
+
+// === Reset Apply Buttons ===
+function resetApplyButtons() {
+  const buttons = document.querySelectorAll('[id^="apply-btn-"]');
+  buttons.forEach((btn) => {
+    btn.className = "btn btn-primary btn-sm";
+    btn.textContent = "Apply";
+    btn.disabled = false;
+  });
+}
+
+// === Check Applied Jobs on Page Load ===
+async function checkAppliedJobs() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const data = await authGet("/api/my_applications/");
+    const apps = data.results || data || [];
+
+    apps.forEach((app) => {
+      const btn = document.getElementById(`apply-btn-${app.job}`);
+      if (btn) {
+        btn.className = "btn btn-secondary btn-sm";
+        btn.textContent = "Already applied";
+        btn.disabled = true;
+      }
+    });
+  } catch (err) {
+    console.error("Error checking applied jobs:", err);
   }
 }
 
@@ -101,13 +245,20 @@ async function loadMyApplications() {
   const content = document.getElementById("myJobsContent");
   if (!section || !content) return;
 
+  const token = localStorage.getItem("token");
+  if (!token) {
+    showToast("⚠️ Please login first", "warning");
+    showLogin();
+    return;
+  }
+
   section.style.display = "block";
   content.innerHTML = '<div class="spinner-border"></div> Loading...';
 
   try {
     const data = await authGet("/api/my_applications/");
+    const apps = data.results || data || [];
 
-    const apps = data.results || [];
     if (!apps.length) {
       content.innerHTML =
         '<div class="alert alert-info">No applications yet</div>';
@@ -132,7 +283,8 @@ async function loadMyApplications() {
       <ul class="list-group">${items}</ul>
     `;
   } catch (err) {
-    content.innerHTML = '<div class="alert alert-danger">❌ API Error</div>';
+    content.textContent = "Error loading applications";
+    showToast("❌ Failed to load applications", "error");
   }
 }
 
@@ -142,7 +294,7 @@ async function applyToJob(jobId) {
   const btn = document.getElementById(`apply-btn-${jobId}`);
 
   if (!token) {
-    alert("⚠️ Please login first!");
+    showToast("⚠️ Please login first!", "warning");
     showLogin();
     return;
   }
@@ -165,17 +317,19 @@ async function applyToJob(jobId) {
       btn.className = "btn btn-success btn-sm";
       btn.textContent = "✅ Applied";
       btn.disabled = true;
+      showToast("✅ Application submitted!", "success");
     } else if (res.status === 400 && data.detail === "Already applied") {
       btn.className = "btn btn-secondary btn-sm";
       btn.textContent = "Already applied";
       btn.disabled = true;
+      showToast("ℹ️ Already applied", "info");
     } else {
-      alert(`❌ Error: ${data.detail || "Unknown error"}`);
+      showToast(`❌ ${data.detail || "Application failed"}`, "error");
       btn.disabled = false;
       btn.textContent = "Apply";
     }
   } catch (err) {
-    alert("❌ Network error");
+    showToast("❌ Network error", "error");
     btn.disabled = false;
     btn.textContent = "Apply";
   }
@@ -184,7 +338,7 @@ async function applyToJob(jobId) {
 // === Load Profile (only on /profile/) ===
 async function loadProfile() {
   const container = document.getElementById("profileForm");
-  if (!container) return; // не на странице профиля
+  if (!container) return;
 
   const token = localStorage.getItem("token");
 
@@ -260,8 +414,8 @@ async function loadProfile() {
 
     document.getElementById("saveForm").addEventListener("submit", saveProfile);
   } catch (err) {
-    container.innerHTML =
-      '<div class="alert alert-danger">❌ Error loading profile</div>';
+    container.textContent = "Error loading profile";
+    showToast("❌ Failed to load profile", "error");
   }
 }
 
@@ -285,7 +439,7 @@ async function saveProfile(e) {
       .filter((s) => s),
   };
 
-  status.innerHTML = '<span class="text-muted">Saving...</span>';
+  status.textContent = "Saving...";
 
   try {
     const res = await fetch("/api/profile/me/", {
@@ -298,19 +452,47 @@ async function saveProfile(e) {
     });
 
     if (res.ok) {
-      status.innerHTML = '<span class="text-success">✅ Saved!</span>';
-      setTimeout(() => (status.innerHTML = ""), 3000);
+      status.textContent = "";
+      showToast("✅ Profile saved!", "success");
     } else {
       const err = await res.json();
-      status.innerHTML = `<span class="text-danger">❌ ${JSON.stringify(err)}</span>`;
+      status.textContent = "";
+      showToast(`❌ ${JSON.stringify(err)}`, "error");
     }
   } catch (err) {
-    status.innerHTML = '<span class="text-danger">❌ Network error</span>';
+    status.textContent = "";
+    showToast("❌ Network error", "error");
   }
+}
+
+// === Show Animated Toast Message ===
+function showToast(message, type = "success") {
+  // Remove existing toast if any
+  const existingToast = document.querySelector(".custom-toast");
+  if (existingToast) existingToast.remove();
+
+  const toast = document.createElement("div");
+  toast.className = `custom-toast ${type}`;
+  toast.textContent = message;
+
+  document.body.appendChild(toast);
+
+  // Auto hide after 3 seconds
+  setTimeout(() => {
+    toast.classList.add("hiding");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 // === Init on Page Load ===
 document.addEventListener("DOMContentLoaded", () => {
   updateAuthStatus();
   loadProfile();
+  checkAppliedJobs();
+
+  // Add Job Form Handler
+  const addJobForm = document.getElementById("addJobForm");
+  if (addJobForm) {
+    addJobForm.addEventListener("submit", createJob);
+  }
 });

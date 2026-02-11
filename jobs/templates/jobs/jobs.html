@@ -11,7 +11,10 @@
     <div class="col">
       <a href="/admin/" class="btn btn-success btn-lg me-2">🛠️ Admin Panel</a>
       <a href="/api/docs/" class="btn btn-info btn-lg me-2">📊 API Docs</a>
-      <a href="#" class="btn btn-secondary btn-lg">➕ Add Job (soon)</a>
+      <button onclick="showAddJob()" class="btn btn-secondary btn-lg">
+        ➕ Add Job
+      </button>
+
       <br />
 
       <!-- Auth controls -->
@@ -22,18 +25,17 @@
         </button>
         <button
           onclick="logout()"
-          class="btn btn-outline-danger"
+          class="btn btn-danger"
           id="logoutBtn"
           style="display: none"
         >
           🚪 Logout
         </button>
+        <!-- JWT Login button -->
+        <button id="loginBtn" class="btn btn-primary" onclick="showLogin()">
+          🔐 Login
+        </button>
       </div>
-
-      <!-- JWT Login button -->
-      <button class="btn btn-outline-primary mt-3" onclick="showLogin()">
-        🔐 API Login (admin/admin_admin123)
-      </button>
     </div>
   </div>
 
@@ -54,14 +56,12 @@
         id="username"
         type="text"
         class="form-control mb-2"
-        value="admin"
         placeholder="Username"
       />
       <input
         id="password"
         type="password"
         class="form-control mb-2"
-        value="admin123"
         placeholder="Password"
       />
       <button onclick="apiLogin()" class="btn btn-primary w-100">Login</button>
@@ -100,7 +100,153 @@
   {% endif %}
 </div>
 
+<!-- Add Job Modal -->
+<div id="addJobModal" class="modal" style="display: none">
+  <div class="modal-content" style="max-width: 600px">
+    <span onclick="hideAddJob()" class="close">&times;</span>
+    <h3>➕ Add New Job</h3>
+    <form id="addJobForm" class="row g-3">
+      <div class="col-12">
+        <label class="form-label">Job Title *</label>
+        <input
+          type="text"
+          class="form-control"
+          id="jobTitle"
+          required
+          placeholder="e.g. Senior Python Developer"
+        />
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Company *</label>
+        <select class="form-select" id="jobCompany" required>
+          <option value="">Select company...</option>
+          <!-- Companies will be loaded dynamically -->
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Description *</label>
+        <textarea
+          class="form-control"
+          id="jobDescription"
+          rows="4"
+          required
+          placeholder="Job description..."
+        ></textarea>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Min Salary ($)</label>
+        <input
+          type="number"
+          class="form-control"
+          id="jobSalaryMin"
+          placeholder="50000"
+        />
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Max Salary ($)</label>
+        <input
+          type="number"
+          class="form-control"
+          id="jobSalaryMax"
+          placeholder="80000"
+        />
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Location *</label>
+        <input
+          type="text"
+          class="form-control"
+          id="jobLocation"
+          required
+          placeholder="e.g. Remote, Kyiv"
+        />
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Skills (comma-separated) *</label>
+        <input
+          type="text"
+          class="form-control"
+          id="jobSkills"
+          required
+          placeholder="Python, Django, PostgreSQL"
+        />
+        <small class="text-muted">Separate skills with commas</small>
+      </div>
+
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">✅ Create Job</button>
+        <button type="button" onclick="hideAddJob()" class="btn btn-secondary">
+          Cancel
+        </button>
+        <span id="addJobStatus" class="ms-2"></span>
+      </div>
+    </form>
+  </div>
+</div>
+
 <style>
+  @keyframes slideInRight {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+  /* Toast Styles */
+  .custom-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    font-weight: 500;
+    min-width: 250px;
+    max-width: 400px;
+    color: white;
+    animation: slideInRight 0.3s ease-out;
+  }
+
+  .custom-toast.success {
+    background: #28a745;
+  }
+
+  .custom-toast.error {
+    background: #dc3545;
+  }
+
+  .custom-toast.warning {
+    background: #ffc107;
+  }
+
+  .custom-toast.info {
+    background: #17a2b8;
+  }
+
+  .custom-toast.hiding {
+    animation: slideOutRight 0.3s ease-in;
+  }
   .modal {
     display: none;
     position: fixed;
